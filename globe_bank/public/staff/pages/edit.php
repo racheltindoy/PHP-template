@@ -7,47 +7,36 @@ if(!isset($_GET['id'])) {
 }
 
 $id = $_GET['id'];
-$menu_name = '';
-$position = '';
-$visible = '';
-$content = '';
+
+if(is_post_request()) {
+    $page['id'] = $id;
+    $page['subject_id'] = $_POST['subject_id'] ?? '';
+    $page['menu_name'] = $_POST['menu_name'] ?? '';
+    $page['position'] = $_POST['position'] ?? '';
+    $page['visible'] = $_POST['visible'] ?? '';
+    $page['content'] = $_POST['content'] ?? '';
+
+    $result = update_page($page);
+    if($result === true) {
+        redirect_to(url_for('/staff/pages/show.php?id=') . $id);
+    } else {
+        $errors = $result;
+    }
+    
+}
+
 
 $page = find_page_by_id($id);
 $pages_by_subject_id = find_pages_by_subject_id($page['subject_id']);
 $pages_by_subject_id_count = mysqli_num_rows($pages_by_subject_id);
-
 $subjects = find_all_subjects();
 
-
-if(is_post_request()) {
-    $subject_id = $_POST['subject_id'] ?? '';
-    $menu_name = $_POST['menu_name'] ?? '';
-    $position = $_POST['position'] ?? '';
-    $visible = $_POST['visible'];
-    $content = $_POST['content'] ?? '';
-
-    update_page($id, $subject_id, $menu_name, $position, $visible, $content);
-
-    echo $subject_id = $_POST['subject_id'] ?? '';
-    echo $menu_name = $_POST['menu_name'] ?? '';
-    echo $position = $_POST['position'] ?? '';
-    echo $visible = $_POST['visible'];
-    echo  $content = $_POST['content'] ?? '';
-    redirect_to(url_for('/staff/pages/show.php?id=') . $id);
-}
 
 ?>
 
 <?php $page_title = 'Edit Page'; ?>
 <?php include(SHARED_PATH . '/staff_header.php'); ?>
 
-<?php
-
-    // while($page_by_subject_id = mysqli_fetch_assoc($pages_by_subject_id)) {
-    //     echo $page_by_subject_id['menu_name'];
-    // }
-
-?>
 
 <div id="content">
     <a class="back-link" href="<?php echo url_for('/staff/pages/index.php'); ?>">&laquo; Back to List</a>   
@@ -55,7 +44,8 @@ if(is_post_request()) {
     <div class="pages new">
         <h1>Edit Page</h1>
 
-        <form action="<?php echo url_for('/staff/pages/edit.php?id=' . h(u($id))); ?>" method="post">
+        <?php echo display_errors($errors); ?>
+        <form action="<?php echo url_for('/staff/pages/edit.php?id=' . $id); ?>" method="post">
             <div class="form_container">
                 <label for="menu_name">Menu Name: </label>
                 <input type="text" id="menu_name" name="menu_name" placeholder="" value="<?php echo h($page['menu_name']); ?>">

@@ -2,6 +2,24 @@
 
 require_once('../../../private/initialize.php');
 
+if(is_post_request()) {
+    $subject = [];
+    $subject['menu_name'] = $_POST['menu_name'] ?? '';
+    $subject['position'] = $_POST['position'] ?? '';
+    $subject['visible'] = $_POST['visible'];
+    
+    $result = insert_subject($subject);
+
+    if($result === true) {
+        $new_id = mysqli_insert_id($db);
+        redirect_to(url_for('staff/subjects/show.php?id=' . $new_id));
+    } else {
+        $errors = $result;
+    }
+} else {
+    // display the blank form;
+}
+
 ?>
 
 <?php $page_title = 'Create Subject'; ?>
@@ -13,7 +31,8 @@ require_once('../../../private/initialize.php');
     <div class="subjects new">
         <h1>Create Subject</h1>
 
-        <form action="<?php echo url_for('staff/subjects/create.php'); ?>" method="post">
+        <?php echo display_errors($errors); ?>
+        <form action="<?php echo url_for('staff/subjects/new.php'); ?>" method="post">
             <div class="form-container">
                 <label for="menu_name">Menu Name: </label>
                 <input type="text" id="menu_name" name="menu_name" placeholder="" value="">

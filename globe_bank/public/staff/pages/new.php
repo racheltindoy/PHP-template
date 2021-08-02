@@ -4,23 +4,32 @@
 <pre>
 <?php
 
-$menu_name = '';
-$position = '';
-$visible = '';
-
-
-
 if(is_post_request()) {
-    $subject_id = $_POST['subject_id'] ?? '';
-    $menu_name = $_POST['menu_name'] ?? '';
-    $position = $_POST['position'] ?? '';
-    $visible = $_POST['visible'] ?? '';
+    $page['subject_id'] = $_POST['subject_id'] ?? '';
+    $page['menu_name'] = $_POST['menu_name'] ?? '';
+    $page['position'] = $_POST['position'] ?? '';
+    $page['visible'] = $_POST['visible'] ?? '';
 
-    echo "Form parameters <br/>";
-    echo 'Menu Name:' . $menu_name . '<br/>';
-    echo 'Position: ' .  $position . '<br/>';
-    echo 'Visible: ' . $visible . '<br/>';
+    $result = insert_page($page);
+    if($result === true) {
+        $new_id = mysqli_insert_id($db);
+        redirect_to(url_for('/staff/pages/show.php?id=' . $new_id));
+    } else {
+        $errors = $result;
+    }
+} else {
+    $page = [];
+    $page['subject_id'] = '';
+    $page['menu_name'] = '';
+    $page['position'] = '';
+    $page['visible'] = '';
+    $page['content'] = '';
+
+    $page_set = find_all_pages();
+    $page_count = mysqli_num_rows($page_set) + 1;
+    mysqli_free_result($page_set);
 }
+
 ?>
 </div>
 
@@ -33,16 +42,20 @@ if(is_post_request()) {
 
 <h1>Create Page</h1>
 
-<form action="<?php echo url_for('staff/pages/create.php'); ?>" method="post">
+<?php echo display_errors($errors) ?>
+
+<form action="<?php echo url_for('staff/pages/new.php'); ?>" method="post">
     <div class="form-container">
         <label for="menu_name">Menu Name</label>
-        <input type="text" id="menu_name" name="menu_name" value="<?php echo h($menu_name); ?>">
+        <input type="text" id="menu_name" name="menu_name" value="<?php echo h($page['menu_name']); ?>">
     </div>
 
     <div class="form-container">
         <label for="posiiton">Position</label>
         <select name="position" id="position">
-            <option value="1"<?php if($position == "1") {echo " selected"; } ?>>1</option>
+            <?php for($i = 1; $i <= $page_count; $i++ ) { ?>
+                <option value="<?php echo $i ?>"><?php echo $i; ?></option>
+            <?php } ?>
         </select>
 
         
@@ -67,7 +80,7 @@ if(is_post_request()) {
     <div class="form-container">
         <label for="visible">Visible</label>
         <input type="hidden" name="visible" value="0">
-        <input type="checkbox" name="visible" value="1" <?php if($visible == "1") {echo " checked"; } ?>>
+        <input type="checkbox" name="visible" value="1" <?php if($page['visible'] == "1") {echo " checked"; } ?>>
     </div>
     
     <input type="submit" name="submit" value="Create Page">

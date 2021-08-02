@@ -22,51 +22,22 @@ function find_subject_by_id($id) {
     return $subject; // returns assoc. array
 }
 
-function validate_subject($subject) {
-    $errors = [];
 
-    // menu_name
-    if(is_blank($subject['menu_name'])) {
-        $errors[] = "Name cannot be blank.";
-    } elseif(!has_length($subject['menu_name'], ['min' => 2, 'max' => 255])) {
-        $errors[] = "Name must be between 2 and 255 characters";
-    }
 
-    // position
-    // Make sure we are working with an integer
-    $position_int = (int) $subject['position'];
-    if($position_int <= 0) {
-        $errors[] = "Position must be greater than zero.";
-    }
-
-    if($position_int > 999) {
-        $errors[] = "Position must be less than 999.";
-    }
-
-    // visible
-    // Make sure we are working with a string
-    $visible_str = (string) $subject['visible'];
-    if(!has_inclusion_of($visible_str, ["0", "1"])) {
-        $errors[] = "Visible must be true or false.";
-    }
-
-    return $errors;
-}
-
-function insert_subject($menu_name, $position, $visible) {
+function insert_subject($subject=array()) {
     global $db;
 
-    // $errors = validate_subject($subject);
-    // if(!empty($errors)) {
-    //     return $errors;
-    // }
-
+    $errors = validate_subject($subject);
+    if(!empty($errors)) {
+        return $errors;
+    }
+   
     $sql = "INSERT INTO subjects ";
     $sql .= "(menu_name, position, visible) ";
     $sql .= "VALUES (";
-    $sql .= "'" . $menu_name . "',";
-    $sql .= "'" . $position . "',";
-    $sql .= "'" . $visible . "'";
+    $sql .= "'" . $subject['menu_name'] . "',";
+    $sql .= "'" . $subject['position'] . "',";
+    $sql .= "'" . $subject['visible'] . "'";
     $sql .= ")";
     $result = mysqli_query($db, $sql);
 
@@ -136,31 +107,25 @@ function find_all_pages() {
     return $result;
 }
 
-function find_all_pages2() {
+
+
+
+function insert_page($page) {
     global $db;
 
-    $sql = "SELECT * FROM pages ";
-    $sql .= "ORDER BY subject_id ASC, position ASC";
-    $result_set = mysqli_query($db, $sql);
-    confirm_result_set($result_set);
-    
-    while($result = mysqli_fetch_assoc($result_set)) {
-        $pages[] = $result;
+    $errors = validate_page($page);
+    if(!empty($errors)) {
+        return $errors;
     }
-
-    return $pages;
-}
-
-function insert_page($subject_id, $menu_name, $position, $visible) {
-    global $db;
-
+  
     $sql = "INSERT INTO pages ";
     $sql .= "(subject_id, menu_name, position, visible)";
     $sql .= "VALUES (";
-    $sql .= "'" . $subject_id . "', ";
-    $sql .= "'" . $menu_name . "', ";
-    $sql .= "'" . $position . "', ";
-    $sql .= "'" . $visible . "'";
+    $sql .= "'" . $page['subject_id'] . "', ";
+    $sql .= "'" . $page['menu_name'] . "', ";
+    $sql .= "'" . $page['position'] . "', ";
+    $sql .= "'" . $page['visible'] . "', ";
+    $sql .= "'" . $page['content'] . "'";
     $sql .= ")";
     $result = mysqli_query($db, $sql);
 
@@ -173,16 +138,21 @@ function insert_page($subject_id, $menu_name, $position, $visible) {
     }
 }
 
-function update_page($id, $subject_id, $menu_name, $position, $visible, $content) {
+function update_page($page) {
     global $db;
 
+    $errors = validate_page($page);
+    if(!empty($errors)) {
+        return $errors;
+    }
+
     $sql = "UPDATE pages SET ";
-    $sql .= "subject_id='" . $subject_id . "', ";
-    $sql .= "menu_name='" . $menu_name . "', ";
-    $sql .= "position='" . $position . "', ";
-    $sql .= "visible='" . $visible . "', ";
-    $sql .= "content='" . $content . "' ";
-    $sql .= "WHERE id='" . $id . "' ";
+    $sql .= "subject_id='" . $page['subject_id'] . "', ";
+    $sql .= "menu_name='" . $page['menu_name'] . "', ";
+    $sql .= "position='" . $page['position'] . "', ";
+    $sql .= "visible='" . $page['visible'] . "', ";
+    $sql .= "content='" . $page['content'] . "' ";
+    $sql .= "WHERE id='" . $page['id'] . "' ";
     $sql .= "LIMIT 1";
     $result = mysqli_query($db, $sql);
 
